@@ -9,12 +9,42 @@
 \maketitle
 
 \section{Mistake bound in consistent online learning}
+Every time the algorithm makes an error, the hypotheses \(h \in H\) that made the error will be removed from \(V_{t+1}\). Since the realizability assumption holds at each iteration, there must be a hypothesis \(h^*\) that correctly labels every observation. After \(|H| - 1 \) errors, we'll be left with only one hypothesis: \(h^*\), which will correctly label all future observations. So we have an upper bound on the number of errors: \(|H| - 1 \).
+
+The above bound can't be a strict inequality because we can generate a sequence of observations and a hypothesis class such that each hypothesis besides \(h^*\) is eliminated one at a time, so we need \(|H| - 1 \) errors before we're left only with  \(h^* \). Here's a trivial example. Start by defining:
+\begin{equation}
+H  \text{ contains } h_i \text{ for i = 0, 1, 2 where }
+h_i =
+ \begin{cases}
+                                   0 & \text{if $x<i$} \\
+                                   1 & \text{if $x \geq i$} \\
+                                   
+\end{cases}
+\end{equation}
+
+Where \(h^*=h_1\). Then, if we take \(x_1 = 0.5\), \(h_0\) will misclassify and be eliminated. Then if we take \(x_2 = 1.5\), \(h_2\) will misclassify and be eliminated. Therefore we need \(|H| - 1 = 3-1 = 2\)  errors before we're left only with  \(h^* \), thus we need a strict inequality.
 
 \section{Stochastic online k-means algorithm}
 
 \section{Gaussian mixture model with identical variance}
 
 \section{Biased estimation of Gaussian variance}
+
+\begin{equation}
+\begin{split}
+E [ \hat { \sigma } ^ { 2 } ] = E [ \frac { 1 } { N } \sum _ { i = 1 } ^ { N } ( x _ { i } - \overline { x } ) ^ { 2 } ]  \\
+= \frac { 1 } { N } E [ \sum _ { i = 1 } ^ { N } ( x _ { i } ^ { 2 } - 2 x _ { i } \overline { x } + \overline { x } ^ { 2 } ) ]  \\ 
+= \frac { 1 } { N } E [ \sum _ {i = 1} ^ { N } x _ { i } ^ { 2 } - \sum _ {i = 1}^ { N } 2 x _ { i} \overline { x } + \sum_ {i = 1} ^ { N } \overline { x } ^ { 2 } ] \\
+= \frac { 1 } { N } E [ \sum _ {i = 1} ^ { N } x _ { i } ^ { 2 } - 2N \overline { x }^{2} + N \overline { x } ^ { 2 } ] \\
+= \frac { 1 } { N } E [ \sum _ {i = 1} ^ { N } x _ { i } ^ { 2 } - N \overline { x } ^ { 2 } ]  = E [  x _ { i } ^ { 2 } ]- E[\overline { x } ^ { 2 } ]  \\
+= \sigma _ { x } ^ { 2 } + E [ x _ { i } ] ^ { 2 } - \sigma _ { \overline { x } } ^ { 2 } - E [ \overline { x }  ] ^ { 2 } \\
+= \sigma _ { x } ^ { 2 } - \sigma _ { \overline x } ^ { 2 }  = \sigma _ { x } ^ { 2 } - \frac{1}{N^2}Var(\sum _ { i = 1 } ^ { N } ( x _ { i } )) \\ 
+= \sigma _ { x } ^ { 2 } - \frac{N}{N^2}\sigma _ { x } ^ { 2 } =  \frac{N-1}{N}\sigma _ { x } ^ { 2 } \neq \sigma _ { x } ^ { 2 }
+\end{split}
+\end{equation}
+
+Therefore  \(\hat { \sigma } ^ { 2 }\) is a biased estimator of \({ \sigma } ^ { 2 }\).
+
 
 \section{Regularized Maximum Likelihood}
 
