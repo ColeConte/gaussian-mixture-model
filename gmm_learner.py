@@ -13,6 +13,7 @@ import math
 
 def gmmLearner(train,test,components):
 	#Training
+	models = []
 	for digit in range(10):
 		#Subset dataframe
 		trainDigit = train[train.iloc[:,-1]==digit]
@@ -36,13 +37,19 @@ def gmmLearner(train,test,components):
 			mus = np.sum(postProb.reshape(len(x),1) * x, axis=0) / (np.sum(postProb))
 			cov = np.dot((postProb.reshape(len(x),1) * (x - mus)).T, (x - mus)) / (np.sum(postProb))
 			scales = np.mean(postProb)
-		print("For digit "  + str(digit) + " mu=\n"+str(mus) +"\n and cov=\n" + str(cov))
+		#print("For digit "  + str(digit) + " mu=\n"+str(mus) +"\n and cov=\n" + str(cov))
+		models += [{"mus":mus,"cov":cov}]
 
-		
-	
-	#Test
-
-
+	#Testing
+	test.columns = ["Col"+str(x) for x in range(len(test.columns)-1)] + ["Y"]
+	for digit in range(10):
+		#Remove correct label and previously computed probs
+		x = test.iloc[:,:-(1+digit)]
+		prob = multivariate_normal.pdf(x=x, mean=models[digit]['mus'], cov=models[digit]['cov'],allow_singular=True)
+		test[str(digit)] = prob
+	test["Prediction"] = test.iloc[:,-10:].idxmax(axis=1)
+	test["Prediction"] = pd.to_numeric(test["Prediction"])
+	print(test[test["Y"]==test["Prediction"]])
 
 
 parser = argparse.ArgumentParser()
