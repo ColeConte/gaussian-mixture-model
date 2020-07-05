@@ -7,30 +7,38 @@ https://towardsdatascience.com/how-to-code-gaussian-mixture-models-from-scratch-
 import argparse
 import pandas as pd
 import numpy as np
+from scipy.stats import multivariate_normal
+from sklearn.datasets import make_spd_matrix
 import math
 
 def gmmLearner(train,test,components):
-	#Train
+	#Training
 	for digit in range(10):
+		#Subset dataframe
 		trainDigit = train[train.iloc[:,-1]==digit]
-		#Does standard normal work for starting params?
-		#Scale equally divided among components to start?
-		mu = [0.0]*(len(train.columns)-1) 
-		cov = np.zeros((len(train.columns)-1,len(train.columns)-1),int)
-		np.fill_diagonal(cov,1) #init as indpt
-		scale = [1.0]*(len(train.columns)-1) 
-		for row in range(len(trainDigit)):
-			#Implement MVN, starting with regular old Normal using col 1
-			#for k in range(len(components)):
-			x = trainDigit.iloc[row,:-1]
-			for col in range(len(train.columns)-1):
-				likelihood = math.exp(-((x[col]-mu[col])**2)/(2*sigmaSq[col]))/math.sqrt(2*math.pi*sigmaSq[col])
-				b = likelihood #this will change when we add multiple components
-				muold = mu[col]
-				mu[col] = ((mu[col] * (row+1)) + x[col])/(row+2) #THIS ISNT WHAT THE SITE SAYS
-				sigmaSq[col] = ((sigmaSq[col] * (row+1)) + ((x[col]-muold)**2))/(row+2) #THIS ISNT WHAT THE SITE SAYS
-				#update scale
-		print("For digit " + str(digit) + " mu="+str(mu) +" and sigmaSq=" + str(sigmaSq))
+		x = trainDigit.iloc[:,:-1]
+		#x = x.astype(float)
+
+		#Initialization Step
+		#Start with each component scaled equally
+		scales = [1.0/ components]*(components)
+		#mus start as mean of x
+		mus = np.asarray(x.mean(axis=0))
+		#Covariance matrix starts as cov matrix of x
+		cov = np.cov(x.T)
+
+		#Run EM algo 50 times
+		for i in range(50):
+			#E Step
+			likelihood = multivariate_normal.pdf(x=x, mean=mus, cov=cov,allow_singular=True)
+			#M Step
+			postProb = likelihood
+			mus = np.sum(postProb.reshape(len(x),1) * x, axis=0) / (np.sum(postProb))
+			cov = np.dot((postProb.reshape(len(x),1) * (x - mus)).T, (x - mus)) / (np.sum(postProb))
+			scales = np.mean(postProb)
+		print("For digit "  + str(digit) + " mu=\n"+str(mus) +"\n and cov=\n" + str(cov))
+
+		
 	
 	#Test
 
