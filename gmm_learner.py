@@ -28,7 +28,7 @@ def gmmLearner(train,test,components):
 		#Covariance matrix starts as cov matrix of x
 		cov = np.cov(x.T)
 
-		#Run EM algo 50 times
+		#Run EM algo 100 times
 		for i in range(50):
 			#E Step
 			likelihood = multivariate_normal.pdf(x=x, mean=mus, cov=cov,allow_singular=True)
@@ -37,7 +37,6 @@ def gmmLearner(train,test,components):
 			mus = np.sum(postProb.reshape(len(x),1) * x, axis=0) / (np.sum(postProb))
 			cov = np.dot((postProb.reshape(len(x),1) * (x - mus)).T, (x - mus)) / (np.sum(postProb))
 			scales = np.mean(postProb)
-		#print("For digit "  + str(digit) + " mu=\n"+str(mus) +"\n and cov=\n" + str(cov))
 		models += [{"mus":mus,"cov":cov}]
 
 	#Testing
@@ -48,8 +47,14 @@ def gmmLearner(train,test,components):
 		prob = multivariate_normal.pdf(x=x, mean=models[digit]['mus'], cov=models[digit]['cov'],allow_singular=True)
 		test[str(digit)] = prob
 	test["Prediction"] = test.iloc[:,-10:].idxmax(axis=1)
+	#recast
 	test["Prediction"] = pd.to_numeric(test["Prediction"])
-	print(test[test["Y"]==test["Prediction"]])
+
+	#Results Printout
+	for digit in range(10):
+		testDigit = test[test["Y"]==digit]
+		print("Test error for digit " +str(digit) + " is: " + str(1-(len(testDigit[testDigit["Y"]==testDigit["Prediction"]])/float(len(testDigit)))))
+	print("Overall test error: "+ str(1-(len(test[test["Y"]==test["Prediction"]])/float(len(test)))))
 
 
 parser = argparse.ArgumentParser()
