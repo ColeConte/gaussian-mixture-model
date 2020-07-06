@@ -76,8 +76,27 @@ E [ \hat { \sigma } ^ { 2 } ] = E [ \frac { 1 } { N } \sum _ { i = 1 } ^ { N } (
 Therefore  \(\hat { \sigma } ^ { 2 }\) is a biased estimator of \({ \sigma } ^ { 2 }\).
 
 
-\section{Regularized Maximum Likelihood}
 
+\section{Regularized Maximum Likelihood}
+\begin{equation}
+\begin{split}
+L = -\frac{1}{m} [ log(\theta) + log(1-\theta) + \sum_{i=1}^{m} logP_\theta (x_i) ] \\
+L_{new} = -\frac{1}{m} [ log(\theta) + log(1-\theta) + \sum_{i=1}^{m+2} logP_\theta (x_i) ] \\
+= -\frac{1}{m} [ log(\theta) + log(1-\theta) + log (P_\theta (x_{m+1})) + log (P_\theta (x_{m+2})) + \sum_{i=1}^{m} logP_\theta (x_i) ] \\
+= - \frac{1}{m} [ log(\theta) + log(1-\theta) + log(\frac{1}{\theta}) + log(\frac{1}{1-\theta})  + \sum_{i=1}^{m} logP_\theta (x_i) ] \\
+= \frac{1}{m}[\sum_{i=1}^{m} -logP_\theta (x_i) ] = L_{emp}
+\end{split}
+\end{equation}
+Therefore \(\hat{\theta} = \frac{\sum_{i=1}^{m}x_i}{m} \)
+
+\begin{equation}
+\begin{split}
+P[|\theta - \theta^*| \geq \frac{1}{m+2} + \frac{\epsilon}{2}] = P[|\hat{\theta} - E[\hat{\theta}] +E[\hat{\theta}]  + \theta^*| \geq \frac{1}{m+2} + \frac{\epsilon}{2}] \\
+\leq P[|\hat{\theta} - E[\hat{\theta}|] \geq \frac{1}{m+2} + \frac{\epsilon}{2}] + P[|E[\hat{\theta}]  + \theta^*| \geq \frac{1}{m+2} + \frac{\epsilon}{2}] \\
+= P[| \frac{1}{m}\sum_{i=1}^{m}Z_i- \hat{\theta} |] \geq \frac{1}{m+2} + \frac{\epsilon}{2}] + P[| \frac{1}{m}\sum_{i=1}^{m}Z_i- \theta^* | \geq \frac{1}{m+2} + \frac{\epsilon}{2}] \\
+\leq 2(2exp(-2m(\frac{1}{m+2} + \frac{\epsilon}{2})^2)) = 4exp(-2m(\frac{1}{m+2} + \frac{\epsilon}{2})^2)
+\end{split}
+\end{equation}
 
 \section{Bernoulli mixture}
 
