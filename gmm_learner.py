@@ -29,14 +29,16 @@ def gmmLearner(train,test,components):
 		cov = np.cov(x.T)
 
 		#Run EM algo 100 times
-		for i in range(50):
+		for i in range(1):
 			#E Step
 			likelihood = multivariate_normal.pdf(x=x, mean=mus, cov=cov,allow_singular=True)
 			#M Step
 			postProb = likelihood
-			mus = np.sum(postProb.reshape(len(x),1) * x, axis=0) / (np.sum(postProb))
-			cov = np.dot((postProb.reshape(len(x),1) * (x - mus)).T, (x - mus)) / (np.sum(postProb))
+			#mus = np.sum(postProb.reshape(len(x),1) * x, axis=0) / (np.sum(postProb))
 			scales = np.mean(postProb)
+			mus = np.mean(x)
+			cov = (1.0/len(x)) * np.dot((x - mus).T, (x - mus))
+			#cov = np.dot((postProb.reshape(len(x),1) * (x - mus)).T, (x - mus)) / (np.sum(postProb))
 		models += [{"mus":mus,"cov":cov}]
 
 	#Testing
