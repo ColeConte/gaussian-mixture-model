@@ -25,8 +25,38 @@ h_i =
 Where \(h^*=h_1\). Then, if we take \(x_1 = 0.5\), \(h_0\) will misclassify and be eliminated. Then if we take \(x_2 = 1.5\), \(h_2\) will misclassify and be eliminated. Therefore we need \(|H| - 1 = 3-1 = 2\)  errors before we're left only with  \(h^* \), thus we need a strict inequality.
 
 \section{Stochastic online k-means algorithm}
+\begin{equation}
+\begin{split}
+G(S,k) = \sum_{i=1}^{m} \sum_{j=1}^{k}\delta_{ij}((x_{i1}-\mu_{j1})^2 + (x_{i2}-\mu_{j2})^2...) \\
+\frac{\partial G(S,k)}{\partial \mu_j} = \sum_{i=1}^{m} \sum_{j=1}^{k}2\delta_{ij}(\mu_{j1} - x_{i1} + \mu_{j2} - x_{i2}...) = \sum_{i=1}^{m} \sum_{j=1}^{k}2\delta_{ij}(\mu_j - x_i) \\ 
+\mu_j^{(t)} = \mu_j^{(t-1)} - \eta_{t-1} \frac{\partial G(S,k)}{\partial \mu_j^{(t-1)}} =  \mu_j^{(t-1)} - \eta_{t-1} \sum_{i=1}^{m} \sum_{j=1}^{k}2\delta_{ij}(\mu_j^{(t-1)} - x_{t-1}) \\
+= \mu_j^{(t-1)} + \eta_{t-1} \sum_{i=1}^{m} \sum_{j=1}^{k}\delta_{ij}(x_{t-1} - \mu_j^{(t-1)} ) \\
+\mu_j^{(t)} =  \mu_j^{(t-1)} + \eta_{t-1} (x_{t-1} - \mu_j^{(t-1)} )
+\end{split}
+\end{equation}
 
 \section{Gaussian mixture model with identical variance}
+We set the derivative of the likelihood equation equal to zero with respect to mean, covariance, and mixing coefficents:
+Mean:
+\begin{equation}
+\begin{split}
+0 = -\sum_{i=1}^{m}r(y_k;x_i) \sigma^2 (x_i - \mu_k) = -\sigma^2 \sum_{i=1}^{m}r(y_k;x_i)  (x_i - \mu_k) \\
+= \sum_{i=1}^{m}r(y_k;x_i)  (x_i - \mu_k) \\ 
+\mu_k = \frac{1}{\sum_{i=1}^{m}r(y_k;x_i)}\sum_{i=1}^{m}r(y_k;x_i) x_i
+\end{split}
+\end{equation}
+Variance:
+\begin{equation}
+\begin{split}
+\sigma^2_k = \frac{1}{\sum_{i=1}^{m}r(y_k;x_i)}\sum_{i=1}^{m}r(y_k;x_i) (x_i-\mu_k)^2
+\end{split}
+\end{equation}
+Mixing Coefficients:
+\begin{equation}
+\begin{split}
+c_k = \sum_{i=1}^{m}\frac{r(y_k;x_i)}{m}
+\end{split}
+\end{equation}
 
 \section{Biased estimation of Gaussian variance}
 
@@ -47,6 +77,7 @@ Therefore  \(\hat { \sigma } ^ { 2 }\) is a biased estimator of \({ \sigma } ^ {
 
 
 \section{Regularized Maximum Likelihood}
+
 
 \section{Bernoulli mixture}
 
