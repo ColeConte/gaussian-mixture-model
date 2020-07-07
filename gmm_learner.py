@@ -1,52 +1,88 @@
 '''
 Cole Conte CSE 512 Hw 3
-https://colab.research.google.com/drive/1Eb-G95_dd3XJ-0hm2qDqdtqMugLkSYE8#scrollTo=erwQND925xoe
-https://towardsdatascience.com/how-to-code-gaussian-mixture-models-from-scratch-in-python-9e7975df5252
 '''
 
 import argparse
 import pandas as pd
 import numpy as np
+import random
 from scipy.stats import multivariate_normal
-from sklearn.datasets import make_spd_matrix
 import math
 
 def gmmLearner(train,test,components):
 	#Training
 	models = []
+	random.seed(123)
 	for digit in range(10):
 		#Subset dataframe
 		trainDigit = train[train.iloc[:,-1]==digit]
 		x = trainDigit.iloc[:,:-1]
-		#x = x.astype(float)
 
 		#Initialization Step
-		#Start with each component scaled equally
-		scales = [1.0/ components]*(components)
-		#mus start as mean of x
-		mus = np.asarray(x.mean(axis=0))
-		#Covariance matrix starts as cov matrix of x
-		cov = np.cov(x.T)
+		#Add clusters
+		for j in range(components):
+			x["c"+str(j)] = 0
+		
+		#Initialize into random cluster
+		randClusters = [random.randint(0,components-1) for _ in range(len(x))]
+		x["cluster"] = randClusters
+		for j in range(components):
+			x["c"+str(j)] = x["cluster"].map(lambda y: 1.0 if y==j else 0.0)
+		x = x.drop(["cluster"],axis=1)
 
-		#Run EM algo 100 times
-		for i in range(1):
+
+
+		#Mus start as mean of cluster
+		#Covariance matrix starts as cov matrix of cluster
+		mus = []
+		covs = []
+		for j in range(components):
+			cluster = x[x["c"+str(j)] == 1].iloc[:,:-components]
+			mus+=[(np.asarray(cluster.mean(axis=0)))]
+			covs+=[(np.cov(cluster.T))]
+		
+
+		#Start with each component scaled equally
+		weights = [1.0/ components]*(components)
+
+		#Run EM algo 20 times
+		for i in range(20):
 			#E Step
-			likelihood = multivariate_normal.pdf(x=x, mean=mus, cov=cov,allow_singular=True)
+			likelihood = []
+			sumLikWeight = np.zeros((1,len(x)))
+			for j in range(components):
+				likelihood += [multivariate_normal.pdf(x=x.iloc[:,:-components], mean=mus[j], cov=covs[j],allow_singular=True)]
+				sumLikWeight = np.add(sumLikWeight,[likelihood[j]*weights[j]])
+
 			#M Step
-			postProb = likelihood
-			#mus = np.sum(postProb.reshape(len(x),1) * x, axis=0) / (np.sum(postProb))
-			scales = np.mean(postProb)
-			mus = np.mean(x)
-			cov = (1.0/len(x)) * np.dot((x - mus).T, (x - mus))
-			#cov = np.dot((postProb.reshape(len(x),1) * (x - mus)).T, (x - mus)) / (np.sum(postProb))
-		models += [{"mus":mus,"cov":cov}]
+			postProb = []
+			for j in range(components):
+				postProb += [likelihood[j]*weights[j] / sumLikWeight]
+			for j in range(components):
+				for m in range(len(x.columns)-components):
+					postProbSum = np.sum(postProb[j])
+					xVals = x.iloc[:,m].values.flatten()
+					mus[j][m] = (np.dot(postProb[j], xVals))/postProbSum
+				weightedx = (x.iloc[:,:-components]-mus[j])
+				for i in range(len(x)):
+					weightedx.iloc[i,:] = (postProb[j][0][i] * weightedx.iloc[i,:]).T
+				xMinusMu = (x.iloc[:,:-components]-mus[j])
+				xMinusMu.columns = weightedx.columns
+				covs[j] = np.dot(xMinusMu.T, weightedx) /postProbSum
+				weights[j] = np.mean(postProb[j])
+		mixedModel = []
+		for j in range(components):
+			mixedModel += [{"mus":mus[j],"cov":covs[j],"weight":weights[j]}]
+		models += [mixedModel]
 
 	#Testing
 	test.columns = ["Col"+str(x) for x in range(len(test.columns)-1)] + ["Y"]
 	for digit in range(10):
 		#Remove correct label and previously computed probs
 		x = test.iloc[:,:-(1+digit)]
-		prob = multivariate_normal.pdf(x=x, mean=models[digit]['mus'], cov=models[digit]['cov'],allow_singular=True)
+		prob = 0
+		for j in range(components):
+			prob += (multivariate_normal.pdf(x=x, mean=models[digit][j]['mus'], cov=models[digit][j]['cov'],allow_singular=True))*models[digit][j]['weight']
 		test[str(digit)] = prob
 	test["Prediction"] = test.iloc[:,-10:].idxmax(axis=1)
 	#recast
